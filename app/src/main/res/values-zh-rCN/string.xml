@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<resources>
+
+    <string name="app_name">烘焙时间</string>
+    <string name="ingredients">成分</string>
+    <string name="next">后一步</string>
+    <string name="previous">前一步</string>
+    <string name="error">暂无数据</string>
+</resources>
