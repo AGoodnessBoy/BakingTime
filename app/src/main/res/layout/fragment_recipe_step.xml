@@ -1,110 +1,131 @@
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context="com.moming.jml.bakingtime.fragment.RecipeStepFragment"
-    android:orientation="vertical">
+    android:layout_height="wrap_content"
+    android:id="@+id/setp_scroll_view"
+    tools:context="com.moming.jml.bakingtime.fragment.RecipeStepFragment">
+       <LinearLayout
+           android:layout_width="match_parent"
+           android:layout_height="wrap_content"
+           android:orientation="vertical">
+           <android.support.v7.widget.CardView
+               android:layout_width="match_parent"
+               android:layout_height="200dp"
+               android:layout_margin="16dp"
+               >
+               <ImageView
+                   android:layout_width="match_parent"
+                   android:layout_height="match_parent"
+                   tools:src="@drawable/brownies"
+                   android:scaleType="centerCrop"
+                   android:id="@+id/image_recpice_bg"
+                   android:contentDescription="@string/brownies"
+                   />
 
-    <android.support.v7.widget.CardView
-        android:layout_width="match_parent"
-        android:layout_height="200dp"
-        android:layout_margin="16dp"
-        >
-        <ImageView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            tools:src="@drawable/brownies"
-            android:scaleType="centerCrop"
-            android:id="@+id/image_recpice_bg"
-            />
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:fontFamily="sans-serif-black"
-            android:textColor="@color/colorTextPrimary"
-            tools:text="Cheesecake"
-            android:textSize="24sp"
-            android:id="@+id/tv_recipe_name_detail"
+           </android.support.v7.widget.CardView>
 
-            />
-    </android.support.v7.widget.CardView>
+           <android.support.v7.widget.CardView
+               android:layout_width="match_parent"
+               android:layout_height="wrap_content"
+               android:layout_marginLeft="16dp"
+               android:layout_marginRight="16dp">
+               <LinearLayout
+                   android:layout_width="match_parent"
+                   android:layout_height="wrap_content"
+                   android:orientation="vertical"
+                   android:padding="8dp"
+                   >
 
-    <android.support.v7.widget.CardView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginLeft="16dp"
-        android:layout_marginRight="16dp">
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="8dp"
-            >
+                   <TextView
+                       android:layout_width="wrap_content"
+                       android:layout_height="wrap_content"
+                       android:layout_gravity="center"
+                       android:fontFamily="sans-serif-black"
+                       android:text="@string/ingredients"
+                       android:textSize="20sp"
+                       android:textColor="@color/colorPrimaryDark"
+                       android:layout_marginBottom="8dp"
+                       />
+                   <TextView
+                       android:layout_width="wrap_content"
+                       android:layout_height="wrap_content"
+                       android:layout_gravity="center"
+                       android:fontFamily="sans-serif-black"
+                       android:text="@string/error"
+                       android:textSize="16sp"
+                       android:textColor="@color/colorPrimaryLight"
+                       android:layout_marginBottom="8dp"
+                       android:id="@+id/tv_ingre_error"
+                       android:visibility="invisible"
+                       />
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:fontFamily="sans-serif-black"
-                android:text="@string/ingredients"
-                android:textColor="@color/colorPrimaryDark"
-                android:layout_marginBottom="8dp"
-                />
-            <android.support.v7.app.AlertController.RecycleListView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:id="@+id/rv_ingredients"
-                >
-                <!-- 用料列表 -->
-
-
-            </android.support.v7.app.AlertController.RecycleListView>
-
-        </LinearLayout>
-
-
-
-
-    </android.support.v7.widget.CardView>
-
-    <android.support.v7.widget.CardView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:layout_marginLeft="16dp"
-        android:layout_marginRight="16dp">
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="8dp"
-            >
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:fontFamily="sans-serif-black"
-                android:text="@string/step"
-                android:textColor="@color/colorPrimaryDark"
-                android:layout_marginBottom="8dp"
-                />
-            <android.support.v7.app.AlertController.RecycleListView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:id="@+id/rv_steps"
-                >
-
-                <!-- 步骤列表 -->
+                   <android.support.v7.widget.RecyclerView
+                       android:layout_width="match_parent"
+                       android:layout_height="wrap_content"
+                       android:id="@+id/rv_ingredients"
+                       >
+                       <!-- 用料列表 -->
 
 
-            </android.support.v7.app.AlertController.RecycleListView>
+                   </android.support.v7.widget.RecyclerView>
 
-        </LinearLayout>
+               </LinearLayout>
 
 
 
 
-    </android.support.v7.widget.CardView>
-</LinearLayout>
+           </android.support.v7.widget.CardView>
+
+           <android.support.v7.widget.CardView
+               android:layout_width="match_parent"
+               android:layout_height="wrap_content"
+               android:layout_marginTop="16dp"
+               android:layout_marginLeft="16dp"
+               android:layout_marginRight="16dp"
+               android:layout_marginBottom="16dp"
+               >
+               <LinearLayout
+                   android:layout_width="match_parent"
+                   android:layout_height="wrap_content"
+                   android:orientation="vertical"
+                   android:padding="8dp"
+                   >
+
+                   <TextView
+                       android:layout_width="wrap_content"
+                       android:layout_height="wrap_content"
+                       android:layout_gravity="center"
+                       android:fontFamily="sans-serif-black"
+                       android:text="@string/step"
+                       android:textSize="20sp"
+                       android:textColor="@color/colorPrimaryDark"
+                       android:layout_marginBottom="8dp"
+                       />
+
+                   <android.support.v7.widget.RecyclerView
+                       android:layout_width="match_parent"
+                       android:layout_height="wrap_content"
+                       android:id="@+id/rv_steps"
+                       >
+
+                       <!-- 步骤列表 -->
+
+
+                   </android.support.v7.widget.RecyclerView>
+                   <TextView
+                       android:layout_width="wrap_content"
+                       android:layout_height="wrap_content"
+                       android:layout_gravity="center"
+                       android:fontFamily="sans-serif-black"
+                       android:text="@string/error"
+                       android:textSize="16sp"
+                       android:textColor="@color/colorPrimaryLight"
+                       android:layout_marginBottom="8dp"
+                       android:id="@+id/tv_step_error"
+                       android:visibility="invisible"
+                       />
+
+               </LinearLayout>
+           </android.support.v7.widget.CardView>
+       </LinearLayout>
+   </ScrollView>

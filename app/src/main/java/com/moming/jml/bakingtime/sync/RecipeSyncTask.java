@@ -3,8 +3,8 @@ package com.moming.jml.bakingtime.sync;
 import android.content.ContentValues;
 import android.content.Context;
 
-import com.moming.jml.bakingtime.JsonTools;
-import com.moming.jml.bakingtime.NetworkTools;
+import com.moming.jml.bakingtime.tool.JsonTools;
+import com.moming.jml.bakingtime.tool.NetworkTools;
 import com.moming.jml.bakingtime.data.RecipeContract;
 
 import org.json.JSONException;

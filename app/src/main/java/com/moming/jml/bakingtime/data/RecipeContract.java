@@ -10,7 +10,7 @@ import android.provider.BaseColumns;
 public class RecipeContract {
 
     public static final String CONTENT_AUTHORITY =
-            "com.moming.jml.backingtime";
+            "com.moming.jml.bakingtime";
 
     public static final Uri BASE_CONTENT_URI
             =Uri.parse("content://"+CONTENT_AUTHORITY);

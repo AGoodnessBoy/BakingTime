@@ -11,9 +11,11 @@
         android:layout_height="wrap_content"
         android:fontFamily="sans-serif"
         android:textSize="16sp"
-        android:paddingTop="8dp"
-        android:paddingBottom="8dp"
-        tools:text="Starting prep"/>
+        android:paddingTop="12dp"
+        android:paddingBottom="12dp"
+        android:paddingLeft="16dp"
+        android:id="@+id/tv_step_name"
+        tools:text="1.Starting prep"/>
     <View
         android:layout_width="match_parent"
         android:layout_height="1dp"

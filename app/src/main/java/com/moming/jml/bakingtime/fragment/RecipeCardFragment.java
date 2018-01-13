@@ -1,6 +1,7 @@
 package com.moming.jml.bakingtime.fragment;
 
 import android.content.Context;
+import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
@@ -17,13 +18,14 @@ import android.view.ViewGroup;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import com.moming.jml.backingtime.R;
+import com.moming.jml.bakingtime.R;
+import com.moming.jml.bakingtime.RecipeStepActivity;
 import com.moming.jml.bakingtime.adapter.RecipeCardAdapter;
 import com.moming.jml.bakingtime.data.RecipeContract;
 import com.moming.jml.bakingtime.sync.RecipeSyncUntils;
 
 
-public class RecipeCardFragment extends Fragment{
+public class RecipeCardFragment extends Fragment implements RecipeCardAdapter.RecipeCardOnClickHandler{
 
     private static final String Tag = RecipeCardFragment.class.getSimpleName();
 
@@ -71,7 +73,7 @@ public class RecipeCardFragment extends Fragment{
         LinearLayoutManager layoutManager = new LinearLayoutManager(getContext(),LinearLayoutManager.VERTICAL,false);
         mRecyclerView.setLayoutManager(layoutManager);
         mRecyclerView.setHasFixedSize(true);
-        mRecipeCardAdapter = new RecipeCardAdapter(getContext());
+        mRecipeCardAdapter = new RecipeCardAdapter(getContext(), this);
         mRecyclerView.setAdapter(mRecipeCardAdapter);
 
 
@@ -148,5 +150,13 @@ public class RecipeCardFragment extends Fragment{
     }
 
 
+    @Override
+    public void onClick(String id,String name) {
+        Intent intent = new Intent(getContext(),RecipeStepActivity.class);
+        intent.putExtra("recpice_id",id);
+        intent.putExtra("recpice_name",name);
 
+        Log.i(Tag,id);
+        getContext().startActivity(intent);
+    }
 }
