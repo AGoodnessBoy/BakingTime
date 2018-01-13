@@ -3,7 +3,8 @@
 <resources>
 
     <string name="app_name">烘焙时间</string>
-    <string name="ingredients">成分</string>
+    <string name="ingredients">用料</string>
+    <string name="step">步骤</string>
     <string name="next">后一步</string>
     <string name="previous">前一步</string>
     <string name="error">暂无数据</string>
