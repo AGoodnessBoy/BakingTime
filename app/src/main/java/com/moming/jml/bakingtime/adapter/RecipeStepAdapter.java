@@ -14,8 +14,7 @@ import com.moming.jml.bakingtime.data.StepEntry;
  * Created by admin on 2018/1/13.
  */
 
-public class RecipeStepAdapter extends RecyclerView.Adapter<RecipeStepAdapter.RecipeStepViewHolder> implements
-RecyclerView.OnClickListener{
+public class RecipeStepAdapter extends RecyclerView.Adapter<RecipeStepAdapter.RecipeStepViewHolder> {
 
     private Context mContext;
     private StepEntry[] mStepData;
@@ -27,13 +26,9 @@ RecyclerView.OnClickListener{
         this.mClickHandler = handler;
     }
 
-    @Override
-    public void onClick(View v) {
-
-    }
 
     public interface RecipeStepClickHandler{
-        void onClick();
+        void onClick(StepEntry[] stepEntries,int postion);
 
 
     }
@@ -78,7 +73,8 @@ RecyclerView.OnClickListener{
 
         @Override
         public void onClick(View v) {
-
+            int position = getAdapterPosition();
+            mClickHandler.onClick(mStepData,position);
         }
     }
 

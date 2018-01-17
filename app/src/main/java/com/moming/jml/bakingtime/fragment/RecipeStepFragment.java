@@ -20,6 +20,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.moming.jml.bakingtime.R;
+import com.moming.jml.bakingtime.StepDetailActivity;
 import com.moming.jml.bakingtime.adapter.RecipeIngreAdapter;
 import com.moming.jml.bakingtime.adapter.RecipeStepAdapter;
 import com.moming.jml.bakingtime.data.IngredientEntry;
@@ -182,8 +183,16 @@ public class RecipeStepFragment extends Fragment implements RecipeStepAdapter.Re
         return view;
     }
 
+
     @Override
-    public void onClick() {
+    public void onClick(StepEntry[] stepEntries, int postion) {
+
+        Intent intent = new Intent(getContext(), StepDetailActivity.class);
+        intent.putExtra("step_postion",postion);
+        Bundle bundle = new Bundle();
+       // intent.putCharSequenceArrayListExtra("all_steps",(ArrayList<CharSequence>) stepEntries)
+        intent.putExtra("all_step",stepEntries);
+        getContext().startActivity(intent);
 
     }
 
