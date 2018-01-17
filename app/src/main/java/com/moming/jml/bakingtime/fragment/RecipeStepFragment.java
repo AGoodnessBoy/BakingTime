@@ -39,6 +39,7 @@ public class RecipeStepFragment extends Fragment implements RecipeStepAdapter.Re
     private TextView mIngreErr;
     private RecyclerView mStepRV;
     private RecyclerView mIngreRV;
+    private String mRecipeId;
 
     private RecipeStepAdapter mStepAdaper;
     private RecipeIngreAdapter mIngreAdaper;
@@ -70,10 +71,10 @@ public class RecipeStepFragment extends Fragment implements RecipeStepAdapter.Re
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         Intent intent = getActivity().getIntent();
-        String id = intent.getStringExtra("recpice_id");
+        mRecipeId = intent.getStringExtra("recpice_id");
         String name = intent.getStringExtra("recpice_name");
         Bundle bundle = new Bundle();
-        bundle.putString("id",id);
+        bundle.putString("id",mRecipeId);
 
         mImageView.setImageResource(ImageTools.getImageSourceIdByName(name));
         mImageView.setContentDescription(name);
@@ -184,15 +185,18 @@ public class RecipeStepFragment extends Fragment implements RecipeStepAdapter.Re
     }
 
 
-    @Override
-    public void onClick(StepEntry[] stepEntries, int postion) {
+    public void onClick(int postion) {
 
-        Intent intent = new Intent(getContext(), StepDetailActivity.class);
-        intent.putExtra("step_postion",postion);
-        Bundle bundle = new Bundle();
-       // intent.putCharSequenceArrayListExtra("all_steps",(ArrayList<CharSequence>) stepEntries)
-        intent.putExtra("all_step",stepEntries);
-        getContext().startActivity(intent);
+
+
+        if (mRecipeId!=null){
+            Intent intent = new Intent(getContext(), StepDetailActivity.class);
+            intent.putExtra("recipe_id",mRecipeId);
+            intent.putExtra("step_postion",postion);
+            getContext().startActivity(intent);
+        }
+
+
 
     }
 
