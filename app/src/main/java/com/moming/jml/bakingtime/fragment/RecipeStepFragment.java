@@ -41,6 +41,10 @@ public class RecipeStepFragment extends Fragment implements RecipeStepAdapter.Re
     private RecyclerView mIngreRV;
     private String mRecipeId;
 
+    private String mRecipeName;
+
+
+
     private RecipeStepAdapter mStepAdaper;
     private RecipeIngreAdapter mIngreAdaper;
 
@@ -48,6 +52,9 @@ public class RecipeStepFragment extends Fragment implements RecipeStepAdapter.Re
     private LoaderManager.LoaderCallbacks<IngredientEntry[]> ingreCallback;
 
     private Cursor mCursor;
+
+    private LinearLayoutManager layoutManager_1;
+    private LinearLayoutManager layoutManager_2;
 
 
     private final static int LOAD_STEP_ID = 64;
@@ -70,18 +77,33 @@ public class RecipeStepFragment extends Fragment implements RecipeStepAdapter.Re
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        Intent intent = getActivity().getIntent();
-        mRecipeId = intent.getStringExtra("recpice_id");
-        String name = intent.getStringExtra("recpice_name");
-        Bundle bundle = new Bundle();
-        bundle.putString("id",mRecipeId);
+        if (savedInstanceState==null){
+            Intent intent = getActivity().getIntent();
+            mRecipeId = intent.getStringExtra("recpice_id");
+            mRecipeName = intent.getStringExtra("recpice_name");
+            Bundle bundle = new Bundle();
+            bundle.putString("id",mRecipeId);
 
-        mImageView.setImageResource(ImageTools.getImageSourceIdByName(name));
-        mImageView.setContentDescription(name);
-        //mNameTextView.setText(name);
-        getActivity().setTitle(name);
-        getActivity().getSupportLoaderManager().initLoader(LOAD_STEP_ID,bundle,stepCallback);
-        getActivity().getSupportLoaderManager().initLoader(LOAD_INGRE_ID,bundle,ingreCallback);
+
+            getActivity().getSupportLoaderManager().initLoader(LOAD_STEP_ID,bundle,stepCallback);
+            getActivity().getSupportLoaderManager().initLoader(LOAD_INGRE_ID,bundle,ingreCallback);
+            mImageView.setImageResource(ImageTools.getImageSourceIdByName(mRecipeName));
+            mImageView.setContentDescription(mRecipeName);
+            //mNameTextView.setText(name);
+            getActivity().setTitle(mRecipeName);
+        }else {
+            mRecipeId = savedInstanceState.getString("recipe_id_save");
+            mRecipeName = savedInstanceState.getString("recipe_name_save");
+            Log.i("TAG",mRecipeName);
+
+            Bundle bundle = new Bundle();
+            bundle.putString("id",mRecipeId);
+
+            getActivity().getSupportLoaderManager().restartLoader(LOAD_STEP_ID,bundle,stepCallback);
+            getActivity().getSupportLoaderManager().restartLoader(LOAD_INGRE_ID,bundle,ingreCallback);
+        }
+
+
     }
 
     @Override
@@ -98,11 +120,13 @@ public class RecipeStepFragment extends Fragment implements RecipeStepAdapter.Re
         mIngreErr = view.findViewById(R.id.tv_ingre_error);
         mStepErr = view.findViewById(R.id.tv_step_error);
 
+
+
         mIngreAdaper = new RecipeIngreAdapter(getContext());
         mStepAdaper = new RecipeStepAdapter(getContext(),this);
 
-        LinearLayoutManager layoutManager_1 = new LinearLayoutManager(getContext(),LinearLayoutManager.VERTICAL,false);
-        LinearLayoutManager layoutManager_2 = new LinearLayoutManager(getContext(),LinearLayoutManager.VERTICAL,false);
+       layoutManager_1 = new LinearLayoutManager(getContext(),LinearLayoutManager.VERTICAL,false);
+       layoutManager_2 = new LinearLayoutManager(getContext(),LinearLayoutManager.VERTICAL,false);
 
         mStepRV.setLayoutManager(layoutManager_1);
         mStepRV.setHasFixedSize(true);
@@ -135,6 +159,8 @@ public class RecipeStepFragment extends Fragment implements RecipeStepAdapter.Re
                     mStepRV.setVisibility(View.VISIBLE);
 
                     mStepAdaper.swapData(data);
+
+
                 }else {
                     mStepErr.setVisibility(View.VISIBLE);
                     mStepRV.setVisibility(View.INVISIBLE);
@@ -166,8 +192,9 @@ public class RecipeStepFragment extends Fragment implements RecipeStepAdapter.Re
                 if (data!=null&&data.length!=0){
                     mIngreErr.setVisibility(View.INVISIBLE);
                     mIngreRV.setVisibility(View.VISIBLE);
-
                     mIngreAdaper.swapData(data);
+
+
                 }else {
                     mIngreErr.setVisibility(View.VISIBLE);
                     mIngreRV.setVisibility(View.INVISIBLE);
@@ -187,15 +214,12 @@ public class RecipeStepFragment extends Fragment implements RecipeStepAdapter.Re
 
     public void onClick(int postion) {
 
-
-
         if (mRecipeId!=null){
             Intent intent = new Intent(getContext(), StepDetailActivity.class);
             intent.putExtra("recipe_id",mRecipeId);
             intent.putExtra("step_postion",postion);
             getContext().startActivity(intent);
         }
-
 
 
     }
@@ -273,4 +297,15 @@ public class RecipeStepFragment extends Fragment implements RecipeStepAdapter.Re
         }
     }
 
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+
+        if (mRecipeName!=null&&mRecipeId!=null){
+            outState.putString("recipe_name_save",mRecipeName);
+            outState.putString("recipe_id_save",mRecipeId);
+            Log.i("TAG",mRecipeName);
+        }
+    }
 }

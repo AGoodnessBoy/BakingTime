@@ -8,4 +8,8 @@
     <string name="next">后一步</string>
     <string name="previous">前一步</string>
     <string name="error">暂无数据</string>
+
+    <string name="pause">暂停</string>
+    <string name="play">播放</string>
+    <string name="restart">重播</string>
 </resources>

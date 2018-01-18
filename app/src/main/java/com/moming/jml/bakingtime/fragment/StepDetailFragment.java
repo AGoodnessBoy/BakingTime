@@ -1,33 +1,37 @@
 package com.moming.jml.bakingtime.fragment;
 
 
+import android.app.Dialog;
 import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.media.session.MediaButtonReceiver;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
-import android.support.v7.app.NotificationCompat;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.google.android.exoplayer2.DefaultLoadControl;
+import com.google.android.exoplayer2.DefaultRenderersFactory;
 import com.google.android.exoplayer2.ExoPlaybackException;
-import com.google.android.exoplayer2.ExoPlayer;
 import com.google.android.exoplayer2.ExoPlayerFactory;
 import com.google.android.exoplayer2.LoadControl;
 import com.google.android.exoplayer2.PlaybackParameters;
+import com.google.android.exoplayer2.Player;
+import com.google.android.exoplayer2.RenderersFactory;
 import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.google.android.exoplayer2.Timeline;
 import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory;
@@ -35,28 +39,20 @@ import com.google.android.exoplayer2.source.ExtractorMediaSource;
 import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.source.TrackGroupArray;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
-import com.google.android.exoplayer2.trackselection.TrackSelection;
 import com.google.android.exoplayer2.trackselection.TrackSelectionArray;
 import com.google.android.exoplayer2.trackselection.TrackSelector;
+import com.google.android.exoplayer2.ui.PlaybackControlView;
 import com.google.android.exoplayer2.ui.SimpleExoPlayerView;
-import com.google.android.exoplayer2.upstream.BandwidthMeter;
-import com.google.android.exoplayer2.upstream.DefaultBandwidthMeter;
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
 import com.google.android.exoplayer2.util.Util;
 import com.moming.jml.bakingtime.R;
-import com.moming.jml.bakingtime.StepDetailActivity;
 import com.moming.jml.bakingtime.data.StepEntry;
 import com.moming.jml.bakingtime.tool.JsonTools;
 
 import org.json.JSONException;
 
-import java.net.MalformedURLException;
-import java.net.URL;
 
-import static android.content.Context.NOTIFICATION_SERVICE;
-
-
-public class StepDetailFragment extends Fragment implements ExoPlayer.EventListener {
+public class StepDetailFragment extends Fragment implements Player.EventListener {
 
 
     public SimpleExoPlayerView mStepPlayerView;
@@ -66,6 +62,18 @@ public class StepDetailFragment extends Fragment implements ExoPlayer.EventListe
     private String mRecipeId;
     private int mStepNow;
 
+    private Dialog mFullScreenDialog;
+    private Boolean mExoPlayerFullscreen = false;
+    private ImageView mFullScreenIcon;
+    private FrameLayout mFullScreenButton;
+
+    private int mResumeWindow;
+    private long mResumePosition;
+
+    private FrameLayout mMainVideoFrame;
+
+    private  Uri mStepVideoUri;
+
     private StepEntry[] mStepEntries;
 
     private SimpleExoPlayer mExoPlayer;
@@ -73,6 +81,9 @@ public class StepDetailFragment extends Fragment implements ExoPlayer.EventListe
     private PlaybackStateCompat.Builder mStateBuilder;
     private NotificationManager mNotificationManager;
     private static final String TAG = StepDetailFragment.class.getSimpleName();
+
+
+    final static String CHANNEL_ID_STEP = "step media";
 
 
 
@@ -98,7 +109,19 @@ public class StepDetailFragment extends Fragment implements ExoPlayer.EventListe
         mNextButton = view.findViewById(R.id.bt_next);
         mPreButton = view.findViewById(R.id.bt_pre);
         mStepPlayerView = view.findViewById(R.id.player_step);
+        mMainVideoFrame = view.findViewById(R.id.main_media_frame);
 
+        if (mExoPlayerFullscreen) {
+            ((ViewGroup) mStepPlayerView.getParent()).removeView(mStepPlayerView);
+            mFullScreenDialog.addContentView(mStepPlayerView, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+            mFullScreenIcon.setImageDrawable(ContextCompat.getDrawable(getContext(), R.drawable.ic_fullscreen_skrink));
+            mFullScreenDialog.show();
+        }
+
+
+        mDescTextView.setVisibility(View.VISIBLE);
+        mPreButton.setVisibility(View.VISIBLE);
+        mNextButton.setVisibility(View.VISIBLE);
 
         return view;
     }
@@ -117,17 +140,83 @@ public class StepDetailFragment extends Fragment implements ExoPlayer.EventListe
            mRecipeId = savedInstanceState.getString("id");
        }
 
+       initializeMediaSession();
+       initFullscreenDialog();
+       initFullscreenButton();
         try {
-            URL url = getStepVideoUrl(mRecipeId,mStepNow);
+            mStepVideoUri= getStepVideoUrl(mRecipeId,mStepNow);
+
         } catch (JSONException e) {
             e.printStackTrace();
         }
 
-       mDescTextView.setText(mStepEntries[mStepNow].getSetp_Desc());
+        if (mStepVideoUri==null){
+            mMainVideoFrame.setVisibility(View.GONE);
+        }else {
+            mMainVideoFrame.setVisibility(View.VISIBLE);
+            Log.i(TAG,mStepVideoUri.toString());
+            initializePlayer(mStepVideoUri);
+
+        }
+
+        mDescTextView.setText(mStepEntries[mStepNow].getSetp_Desc());
+
+
+        int orientation = getContext().getResources().getConfiguration().orientation;
+
+        if (orientation == Configuration.ORIENTATION_LANDSCAPE){
+
+
+        }
 
 
 
 
+    }
+
+    private void initFullscreenDialog() {
+
+        mFullScreenDialog = new Dialog(getContext(), android.R.style.Theme_Black_NoTitleBar_Fullscreen) {
+            public void onBackPressed() {
+                if (mExoPlayerFullscreen)
+                    closeFullscreenDialog();
+                super.onBackPressed();
+            }
+        };
+    }
+
+    private void openFullscreenDialog() {
+
+        ((ViewGroup) mStepPlayerView.getParent()).removeView(mStepPlayerView);
+        mFullScreenDialog.addContentView(mStepPlayerView, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+        mFullScreenIcon.setImageDrawable(ContextCompat.getDrawable(getContext(), R.drawable.ic_fullscreen_skrink));
+        mExoPlayerFullscreen = true;
+        mFullScreenDialog.show();
+    }
+
+    private void closeFullscreenDialog() {
+
+        ((ViewGroup) mStepPlayerView.getParent()).removeView(mStepPlayerView);
+        ((FrameLayout) getActivity().findViewById(R.id.main_media_frame)).addView(mStepPlayerView);
+        mExoPlayerFullscreen = false;
+        mFullScreenDialog.dismiss();
+        mFullScreenIcon.setImageDrawable(ContextCompat.getDrawable(getContext(), R.drawable.ic_fullscreen_expand));
+    }
+
+    private void initFullscreenButton() {
+
+        PlaybackControlView controlView = mStepPlayerView.findViewById(R.id.exo_controller);
+        mFullScreenIcon = controlView.findViewById(R.id.exo_fullscreen_icon);
+        mFullScreenButton = controlView.findViewById(R.id.exo_fullscreen_button);
+        mFullScreenButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (!mExoPlayerFullscreen)
+                    openFullscreenDialog();
+                else
+                    closeFullscreenDialog();
+            }
+        });
     }
 
     @Override
@@ -140,21 +229,41 @@ public class StepDetailFragment extends Fragment implements ExoPlayer.EventListe
         }
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
 
-    public URL getStepVideoUrl(String id,int step) throws JSONException {
+
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+
+        if (mStepPlayerView != null && mStepPlayerView.getPlayer() != null) {
+            mResumeWindow = mStepPlayerView.getPlayer().getCurrentWindowIndex();
+            mResumePosition = Math.max(0, mStepPlayerView.getPlayer().getContentPosition());
+
+            mStepPlayerView.getPlayer().release();
+        }
+
+        if (mFullScreenDialog != null)
+            mFullScreenDialog.dismiss();
+    }
+
+
+    public Uri getStepVideoUrl(String id, int step) throws JSONException {
         if (mStepEntries==null){
             mStepEntries = JsonTools.getStepById(getContext(),id);
         }
         String urlStr = mStepEntries[step].getSetp_video();
-
-        Uri uri = Uri.parse(urlStr).buildUpon().build();
-        URL url = null;
-        try {
-            url = new URL(uri.toString());
-        }catch (MalformedURLException e){
-            e.printStackTrace();
+        if (urlStr==""||urlStr.length()==0){
+            return null;
+        }else {
+            return Uri.parse(urlStr).buildUpon().build();
         }
-        return url;
+
+
 
     }
     /**
@@ -193,57 +302,13 @@ public class StepDetailFragment extends Fragment implements ExoPlayer.EventListe
 
     }
 
-    private void showNotification(PlaybackStateCompat state) {
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(getContext());
-
-        int icon;
-        String play_pause;
-        if(state.getState() == PlaybackStateCompat.STATE_PLAYING){
-            icon = R.drawable.exo_controls_pause;
-            play_pause = getString(R.string.pause);
-        } else {
-            icon = R.drawable.exo_controls_play;
-            play_pause = getString(R.string.play);
-        }
-
-
-        NotificationCompat.Action playPauseAction = new NotificationCompat.Action(
-                icon, play_pause,
-                MediaButtonReceiver.buildMediaButtonPendingIntent(getContext(),
-                        PlaybackStateCompat.ACTION_PLAY_PAUSE));
-
-        NotificationCompat.Action restartAction = new android.support.v4.app.NotificationCompat
-                .Action(R.drawable.exo_controls_previous, getString(R.string.restart),
-                MediaButtonReceiver.buildMediaButtonPendingIntent
-                        (getContext(), PlaybackStateCompat.ACTION_SKIP_TO_PREVIOUS));
-
-        PendingIntent contentPendingIntent = PendingIntent.getActivity
-                (getContext(), 0, new Intent(getContext(), StepDetailActivity.class), 0);
-
-        builder.setContentTitle(getString(R.string.brownies))
-                .setContentText(getString(R.string.app_name))
-                .setContentIntent(contentPendingIntent)
-                .setSmallIcon(R.drawable.exo_edit_mode_logo)
-                .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-                .addAction(restartAction)
-                .addAction(playPauseAction)
-                .setStyle(new NotificationCompat.MediaStyle()
-                        .setMediaSession(mMediaSession.getSessionToken())
-                        .setShowActionsInCompactView(0,1));
-
-
-        mNotificationManager = (NotificationManager)getActivity().getSystemService(NOTIFICATION_SERVICE);
-        mNotificationManager.notify(0, builder.build());
-    }
-
-
-
     private void initializePlayer(Uri mediaUri) {
         if (mExoPlayer == null) {
             // Create an instance of the ExoPlayer.
             TrackSelector trackSelector = new DefaultTrackSelector();
             LoadControl loadControl = new DefaultLoadControl();
-            mExoPlayer = ExoPlayerFactory.newSimpleInstance(getContext(), trackSelector, loadControl);
+            RenderersFactory renderersFactory = new DefaultRenderersFactory(getContext());
+            mExoPlayer = ExoPlayerFactory.newSimpleInstance(renderersFactory, trackSelector, loadControl);
             mStepPlayerView.setPlayer(mExoPlayer);
 
             // Set the ExoPlayer.EventListener to this activity.
@@ -251,18 +316,24 @@ public class StepDetailFragment extends Fragment implements ExoPlayer.EventListe
 
             // Prepare the MediaSource.
             String userAgent = Util.getUserAgent(getContext(), "BakingTime");
-            MediaSource mediaSource = new ExtractorMediaSource(mediaUri, new DefaultDataSourceFactory(
-                    getContext(), userAgent), new DefaultExtractorsFactory(), null, null);
+            DefaultDataSourceFactory dataSourceFactory = new DefaultDataSourceFactory(getContext(),userAgent);
+            DefaultExtractorsFactory extractorsFactory = new DefaultExtractorsFactory();
+            ExtractorMediaSource.Factory factory = new ExtractorMediaSource.Factory(dataSourceFactory);
+            factory.setExtractorsFactory(extractorsFactory);
+            MediaSource mediaSource = factory.createMediaSource(mediaUri);
+
             mExoPlayer.prepare(mediaSource);
             mExoPlayer.setPlayWhenReady(true);
+
         }
     }
 
     private void releasePlayer() {
-        mNotificationManager.cancelAll();
-        mExoPlayer.stop();
-        mExoPlayer.release();
-        mExoPlayer = null;
+        if (mExoPlayer!=null){
+            mExoPlayer.stop();
+            mExoPlayer.release();
+            mExoPlayer = null;
+        }
     }
 
     @Override
@@ -282,7 +353,21 @@ public class StepDetailFragment extends Fragment implements ExoPlayer.EventListe
 
     @Override
     public void onPlayerStateChanged(boolean playWhenReady, int playbackState) {
+        if ((playbackState == Player.STATE_READY)&&playWhenReady){
+            mStateBuilder.setState(
+                    PlaybackStateCompat.STATE_PLAYING,
+                    mExoPlayer.getCurrentPosition(),
+                    1f
+            );
+        }else if ((playbackState == Player.STATE_READY)){
+            mStateBuilder.setState(
+                    PlaybackStateCompat.STATE_PAUSED,
+                    mExoPlayer.getCurrentPosition(),
+                    1f
+            );
+        }
 
+        mMediaSession.setPlaybackState(mStateBuilder.build());
     }
 
     @Override
@@ -346,6 +431,9 @@ public class StepDetailFragment extends Fragment implements ExoPlayer.EventListe
     }
 
 
-
-
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        releasePlayer();
+    }
 }
