@@ -2,6 +2,7 @@ package com.moming.jml.bakingtime.fragment;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
@@ -11,6 +12,7 @@ import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -45,6 +47,8 @@ public class RecipeCardFragment extends Fragment implements RecipeCardAdapter.Re
     ProgressBar mLoadingBar;
     TextView  mErrorText;
 
+    private Boolean isPad=false;
+
     private RecipeCardAdapter mRecipeCardAdapter;
 
     public android.support.v4.app.LoaderManager.LoaderCallbacks<Cursor> callbacks;
@@ -68,10 +72,22 @@ public class RecipeCardFragment extends Fragment implements RecipeCardAdapter.Re
 
         // Inflate the layout for this fragment
 
-        // StaggeredGridLayoutManager layoutManager =
-        //        new StaggeredGridLayoutManager(1,StaggeredGridLayoutManager.VERTICAL);
-        LinearLayoutManager layoutManager = new LinearLayoutManager(getContext(),LinearLayoutManager.VERTICAL,false);
-        mRecyclerView.setLayoutManager(layoutManager);
+       if (getActivity().getResources().getBoolean(R.bool.isPad)){
+           Log.d(Tag,"true");
+            StaggeredGridLayoutManager sglayoutManager =
+                   new StaggeredGridLayoutManager(3,StaggeredGridLayoutManager.VERTICAL);
+           mRecyclerView.setLayoutManager(sglayoutManager);
+
+           //横屏
+           getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+       }else {
+           LinearLayoutManager ilayoutManager = new LinearLayoutManager(getContext(),LinearLayoutManager.VERTICAL,false);
+           mRecyclerView.setLayoutManager(ilayoutManager);Log.d(Tag,"false");
+
+       }
+
+
+
         mRecyclerView.setHasFixedSize(true);
         mRecipeCardAdapter = new RecipeCardAdapter(getContext(), this);
         mRecyclerView.setAdapter(mRecipeCardAdapter);

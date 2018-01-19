@@ -104,6 +104,7 @@ public class RecipeStepFragment extends Fragment implements RecipeStepAdapter.Re
         }
 
 
+
     }
 
     @Override
@@ -174,7 +175,6 @@ public class RecipeStepFragment extends Fragment implements RecipeStepAdapter.Re
             }
         };
 
-
         ingreCallback = new LoaderManager.LoaderCallbacks<IngredientEntry[]>() {
             @Override
             public IngreLoader onCreateLoader(int id, Bundle args) {
@@ -214,11 +214,20 @@ public class RecipeStepFragment extends Fragment implements RecipeStepAdapter.Re
 
     public void onClick(int postion) {
 
-        if (mRecipeId!=null){
-            Intent intent = new Intent(getContext(), StepDetailActivity.class);
-            intent.putExtra("recipe_id",mRecipeId);
-            intent.putExtra("step_postion",postion);
-            getContext().startActivity(intent);
+        if (getActivity().getResources().getBoolean(R.bool.isPad)){
+            if (mRecipeId!=null){
+                StepDetailFragment fragment = (StepDetailFragment) getActivity().getSupportFragmentManager().findFragmentById(
+                        R.id.step_detail_fragment);
+                fragment.inputData(mRecipeId,postion);
+            }
+
+        }else {
+            if (mRecipeId!=null){
+                Intent intent = new Intent(getContext(), StepDetailActivity.class);
+                intent.putExtra("recipe_id",mRecipeId);
+                intent.putExtra("step_postion",postion);
+                getContext().startActivity(intent);
+            }
         }
 
 

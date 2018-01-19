@@ -3,6 +3,8 @@
     <string name="ingredients">ingredients</string>
     <string name="next">next</string>
     <string name="previous">previous</string>
+    <string name="last">this is last one!</string>
+    <string name="first">this is first one!</string>
     <string name="error">no data</string>
     <string name="step">step</string>
     <string name="brownies">brownies</string>
@@ -12,6 +14,7 @@
     <string name="pause">pause</string>
     <string name="play">play</string>
     <string name="restart">restart</string>
+
 
 
 </resources>

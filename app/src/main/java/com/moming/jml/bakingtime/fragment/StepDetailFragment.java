@@ -2,10 +2,10 @@ package com.moming.jml.bakingtime.fragment;
 
 
 import android.app.Dialog;
-import android.app.NotificationManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Bundle;
@@ -15,7 +15,6 @@ import android.support.v4.content.ContextCompat;
 import android.support.v4.media.session.MediaButtonReceiver;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -23,7 +22,9 @@ import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.DefaultLoadControl;
 import com.google.android.exoplayer2.DefaultRenderersFactory;
 import com.google.android.exoplayer2.ExoPlaybackException;
@@ -69,6 +70,9 @@ public class StepDetailFragment extends Fragment implements Player.EventListener
 
     private int mResumeWindow;
     private long mResumePosition;
+    private final String STATE_RESUME_WINDOW = "resumeWindow";
+    private final String STATE_RESUME_POSITION = "resumePosition";
+    private final String STATE_PLAYER_FULLSCREEN = "playerFullscreen";
 
     private FrameLayout mMainVideoFrame;
 
@@ -79,11 +83,8 @@ public class StepDetailFragment extends Fragment implements Player.EventListener
     private SimpleExoPlayer mExoPlayer;
     private static MediaSessionCompat mMediaSession;
     private PlaybackStateCompat.Builder mStateBuilder;
-    private NotificationManager mNotificationManager;
     private static final String TAG = StepDetailFragment.class.getSimpleName();
 
-
-    final static String CHANNEL_ID_STEP = "step media";
 
 
 
@@ -123,50 +124,115 @@ public class StepDetailFragment extends Fragment implements Player.EventListener
         mPreButton.setVisibility(View.VISIBLE);
         mNextButton.setVisibility(View.VISIBLE);
 
+
+        mNextButton.setOnClickListener(
+                new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        clickToNext();
+                    }
+                }
+        );
+
+        mPreButton.setOnClickListener(
+                new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        clickToPre();
+                    }
+                }
+        );
+
         return view;
+    }
+    //下一步
+    public void clickToNext(){
+        int length = mStepEntries.length;
+        releasePlayer();
+        if (length>0){
+            if (mStepNow<length-1){
+                mStepNow = mStepNow + 1;
+                mNextButton.setText(getActivity().getResources().getString(R.string.next));
+            }else {
+                Toast.makeText(getContext(),getActivity().getResources().getString(R.string.last),Toast.LENGTH_LONG)
+                        .show();
+                mStepNow = length-1;
+            }
+            try {
+                mStepVideoUri = getStepVideoUrl(mRecipeId,mStepNow);
+            }catch (JSONException e){
+                e.printStackTrace();
+            }
+            mDescTextView.setText(mStepEntries[mStepNow].getSetp_Desc());
+            getActivity().setTitle(mStepEntries[mStepNow].getSetp_shortDesc());
+            if (mStepVideoUri!=null){
+                initializePlayer(mStepVideoUri);
+                mStepPlayerView.setVisibility(View.VISIBLE);
+                mMainVideoFrame.setVisibility(View.VISIBLE);
+            }else {
+                mStepPlayerView.setVisibility(View.GONE);
+                mMainVideoFrame.setVisibility(View.GONE);
+            }
+        }
+
+
+    }
+    //上一步
+    public void clickToPre(){
+        int length = mStepEntries.length;
+        releasePlayer();
+        if (length>0){
+            if (mStepNow-1>0){
+                mStepNow = mStepNow -1;
+                mPreButton.setText(getActivity().getResources().getString(R.string.previous));
+            }else {
+                Toast.makeText(getContext(),getActivity().getResources().getString(R.string.first),Toast.LENGTH_LONG)
+                        .show();
+                mStepNow = 0;
+            }
+
+
+            try {
+                mStepVideoUri = getStepVideoUrl(mRecipeId,mStepNow);
+            }catch (JSONException e){
+                e.printStackTrace();
+            }
+            mDescTextView.setText(mStepEntries[mStepNow].getSetp_Desc());
+            getActivity().setTitle(mStepEntries[mStepNow].getSetp_shortDesc());
+            if (mStepVideoUri!=null){
+                initializePlayer(mStepVideoUri);
+                mStepPlayerView.setVisibility(View.VISIBLE);
+                mMainVideoFrame.setVisibility(View.VISIBLE);
+            }else {
+                mStepPlayerView.setVisibility(View.GONE);
+                mMainVideoFrame.setVisibility(View.GONE);
+            }
+        }
+
     }
 
 
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-       if (savedInstanceState==null){
-           Intent intent = getActivity().getIntent();
-           mStepNow = intent.getIntExtra("step_postion",0);
-           mRecipeId  = intent.getStringExtra("recipe_id");
-
-       }else {
+       if (savedInstanceState!=null){
            mStepNow = savedInstanceState.getInt("step");
            mRecipeId = savedInstanceState.getString("id");
+           mResumeWindow = savedInstanceState.getInt(STATE_RESUME_WINDOW);
+           mResumePosition = savedInstanceState.getLong(STATE_RESUME_POSITION);
+           mExoPlayerFullscreen = savedInstanceState.getBoolean(STATE_PLAYER_FULLSCREEN);
        }
 
        initializeMediaSession();
        initFullscreenDialog();
        initFullscreenButton();
-        try {
-            mStepVideoUri= getStepVideoUrl(mRecipeId,mStepNow);
-
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-
-        if (mStepVideoUri==null){
-            mMainVideoFrame.setVisibility(View.GONE);
-        }else {
-            mMainVideoFrame.setVisibility(View.VISIBLE);
-            Log.i(TAG,mStepVideoUri.toString());
-            initializePlayer(mStepVideoUri);
-
-        }
-
-        mDescTextView.setText(mStepEntries[mStepNow].getSetp_Desc());
 
 
         int orientation = getContext().getResources().getConfiguration().orientation;
-
-        if (orientation == Configuration.ORIENTATION_LANDSCAPE){
-
-
+        if (orientation == Configuration.ORIENTATION_LANDSCAPE&&
+                (!(getActivity().getResources().getBoolean(R.bool.isPad)))
+                ){
+            openFullscreenDialog();
         }
 
 
@@ -174,6 +240,31 @@ public class StepDetailFragment extends Fragment implements Player.EventListener
 
     }
 
+
+
+    public void inputData(String id,int postion){
+        if (id!=null&&postion>0){
+            mRecipeId = id;
+            mStepNow = postion;
+        }
+        try {
+            mStepVideoUri= getStepVideoUrl(mRecipeId,mStepNow);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        if (mStepVideoUri==null){
+            mMainVideoFrame.setVisibility(View.GONE);
+        }else {
+            mMainVideoFrame.setVisibility(View.VISIBLE);
+            initializePlayer(mStepVideoUri);
+        }
+        mDescTextView.setText(mStepEntries[mStepNow].getSetp_Desc());
+        getActivity().setTitle(mStepEntries[mStepNow].getSetp_shortDesc());
+
+    }
+
+
+    //初始化全屏
     private void initFullscreenDialog() {
 
         mFullScreenDialog = new Dialog(getContext(), android.R.style.Theme_Black_NoTitleBar_Fullscreen) {
@@ -184,25 +275,37 @@ public class StepDetailFragment extends Fragment implements Player.EventListener
             }
         };
     }
-
+    //进入全屏
     private void openFullscreenDialog() {
+        //横屏
+        getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
 
         ((ViewGroup) mStepPlayerView.getParent()).removeView(mStepPlayerView);
         mFullScreenDialog.addContentView(mStepPlayerView, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
         mFullScreenIcon.setImageDrawable(ContextCompat.getDrawable(getContext(), R.drawable.ic_fullscreen_skrink));
         mExoPlayerFullscreen = true;
         mFullScreenDialog.show();
-    }
 
+    }
+    //关闭全屏
     private void closeFullscreenDialog() {
+        //竖屏
+        if (!(getActivity().getResources().getBoolean(R.bool.isPad))){
+            getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+        }else {
+            getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+        }
+
+
 
         ((ViewGroup) mStepPlayerView.getParent()).removeView(mStepPlayerView);
         ((FrameLayout) getActivity().findViewById(R.id.main_media_frame)).addView(mStepPlayerView);
         mExoPlayerFullscreen = false;
         mFullScreenDialog.dismiss();
         mFullScreenIcon.setImageDrawable(ContextCompat.getDrawable(getContext(), R.drawable.ic_fullscreen_expand));
-    }
 
+    }
+    //初始化全屏按钮
     private void initFullscreenButton() {
 
         PlaybackControlView controlView = mStepPlayerView.findViewById(R.id.exo_controller);
@@ -227,11 +330,19 @@ public class StepDetailFragment extends Fragment implements Player.EventListener
             outState.putInt("step",mStepNow);
 
         }
+        outState.putInt(STATE_RESUME_WINDOW, mResumeWindow);
+        outState.putLong(STATE_RESUME_POSITION, mResumePosition);
+        outState.putBoolean(STATE_PLAYER_FULLSCREEN, mExoPlayerFullscreen);
     }
 
     @Override
     public void onResume() {
         super.onResume();
+        boolean haveResumePosition = mResumeWindow != C.INDEX_UNSET;
+
+        if (haveResumePosition&&mStepVideoUri!=null) {
+            mExoPlayer.seekTo(mResumeWindow, mResumePosition);
+        }
 
 
     }
@@ -263,13 +374,12 @@ public class StepDetailFragment extends Fragment implements Player.EventListener
             return Uri.parse(urlStr).buildUpon().build();
         }
 
-
-
     }
     /**
      * Initializes the Media Session to be enabled with media buttons, transport controls, callbacks
      * and media controller.
      */
+    //初始化MediaSession
     private void initializeMediaSession() {
 
         // Create a MediaSessionCompat.
@@ -301,7 +411,7 @@ public class StepDetailFragment extends Fragment implements Player.EventListener
         mMediaSession.setActive(true);
 
     }
-
+    //初始化播放器
     private void initializePlayer(Uri mediaUri) {
         if (mExoPlayer == null) {
             // Create an instance of the ExoPlayer.
@@ -327,7 +437,7 @@ public class StepDetailFragment extends Fragment implements Player.EventListener
 
         }
     }
-
+    //重置播放器
     private void releasePlayer() {
         if (mExoPlayer!=null){
             mExoPlayer.stop();
@@ -336,6 +446,8 @@ public class StepDetailFragment extends Fragment implements Player.EventListener
         }
     }
 
+
+    //播放器监听
     @Override
     public void onTimelineChanged(Timeline timeline, Object manifest) {
 

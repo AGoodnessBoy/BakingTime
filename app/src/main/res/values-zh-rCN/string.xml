@@ -7,6 +7,8 @@
     <string name="step">步骤</string>
     <string name="next">后一步</string>
     <string name="previous">前一步</string>
+    <string name="last">这已经是最后一步了！</string>
+    <string name="first">这是到第一步了！</string>
     <string name="error">暂无数据</string>
 
     <string name="pause">暂停</string>
