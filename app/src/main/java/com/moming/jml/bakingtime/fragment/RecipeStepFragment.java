@@ -103,6 +103,13 @@ public class RecipeStepFragment extends Fragment implements RecipeStepAdapter.Re
             getActivity().getSupportLoaderManager().restartLoader(LOAD_INGRE_ID,bundle,ingreCallback);
         }
 
+        if (getActivity().getResources().getBoolean(R.bool.isPad)){
+            StepDetailFragment fragment = (StepDetailFragment)getActivity(). getSupportFragmentManager().findFragmentById(
+                    R.id.step_detail_fragment);
+            Log.i("tag",mRecipeId);
+            fragment.inputData(mRecipeId,0);
+        }
+
 
 
     }
@@ -218,6 +225,9 @@ public class RecipeStepFragment extends Fragment implements RecipeStepAdapter.Re
             if (mRecipeId!=null){
                 StepDetailFragment fragment = (StepDetailFragment) getActivity().getSupportFragmentManager().findFragmentById(
                         R.id.step_detail_fragment);
+                Log.i("tag",mRecipeId);
+                Log.i("tag",Integer.toString(postion));
+
                 fragment.inputData(mRecipeId,postion);
             }
 

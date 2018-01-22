@@ -15,6 +15,7 @@ import android.support.v4.content.ContextCompat;
 import android.support.v4.media.session.MediaButtonReceiver;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -65,14 +66,15 @@ public class StepDetailFragment extends Fragment implements Player.EventListener
 
     private Dialog mFullScreenDialog;
     private Boolean mExoPlayerFullscreen = false;
+    private Boolean mFullscreen = false;
     private ImageView mFullScreenIcon;
-    private FrameLayout mFullScreenButton;
 
     private int mResumeWindow;
     private long mResumePosition;
     private final String STATE_RESUME_WINDOW = "resumeWindow";
     private final String STATE_RESUME_POSITION = "resumePosition";
     private final String STATE_PLAYER_FULLSCREEN = "playerFullscreen";
+
 
     private FrameLayout mMainVideoFrame;
 
@@ -97,6 +99,7 @@ public class StepDetailFragment extends Fragment implements Player.EventListener
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.i(TAG,"creat");
 
     }
 
@@ -221,9 +224,10 @@ public class StepDetailFragment extends Fragment implements Player.EventListener
            mResumeWindow = savedInstanceState.getInt(STATE_RESUME_WINDOW);
            mResumePosition = savedInstanceState.getLong(STATE_RESUME_POSITION);
            mExoPlayerFullscreen = savedInstanceState.getBoolean(STATE_PLAYER_FULLSCREEN);
-       }
+           mStepVideoUri = Uri.parse(savedInstanceState.getString("url")).buildUpon().build();
 
-       initializeMediaSession();
+       }
+        initializeMediaSession();
        initFullscreenDialog();
        initFullscreenButton();
 
@@ -243,7 +247,7 @@ public class StepDetailFragment extends Fragment implements Player.EventListener
 
 
     public void inputData(String id,int postion){
-        if (id!=null&&postion>0){
+        if (id!=null&&postion>=0){
             mRecipeId = id;
             mStepNow = postion;
         }
@@ -252,10 +256,20 @@ public class StepDetailFragment extends Fragment implements Player.EventListener
         } catch (JSONException e) {
             e.printStackTrace();
         }
+
+        releasePlayer();
+
         if (mStepVideoUri==null){
+            Log.i(TAG,"uri null");
+            mStepPlayerView.setVisibility(View.GONE);
             mMainVideoFrame.setVisibility(View.GONE);
         }else {
+            mStepPlayerView.setVisibility(View.VISIBLE);
             mMainVideoFrame.setVisibility(View.VISIBLE);
+
+            Log.i(TAG,mStepVideoUri.toString());
+            Log.i(TAG,"uri not null");
+            initializeMediaSession();
             initializePlayer(mStepVideoUri);
         }
         mDescTextView.setText(mStepEntries[mStepNow].getSetp_Desc());
@@ -277,6 +291,7 @@ public class StepDetailFragment extends Fragment implements Player.EventListener
     }
     //进入全屏
     private void openFullscreenDialog() {
+        mFullscreen = true;
         //横屏
         getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
 
@@ -289,6 +304,7 @@ public class StepDetailFragment extends Fragment implements Player.EventListener
     }
     //关闭全屏
     private void closeFullscreenDialog() {
+        mFullscreen = true;
         //竖屏
         if (!(getActivity().getResources().getBoolean(R.bool.isPad))){
             getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
@@ -310,7 +326,7 @@ public class StepDetailFragment extends Fragment implements Player.EventListener
 
         PlaybackControlView controlView = mStepPlayerView.findViewById(R.id.exo_controller);
         mFullScreenIcon = controlView.findViewById(R.id.exo_fullscreen_icon);
-        mFullScreenButton = controlView.findViewById(R.id.exo_fullscreen_button);
+        FrameLayout mFullScreenButton = controlView.findViewById(R.id.exo_fullscreen_button);
         mFullScreenButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -330,6 +346,9 @@ public class StepDetailFragment extends Fragment implements Player.EventListener
             outState.putInt("step",mStepNow);
 
         }
+        if (mStepVideoUri!=null){
+            outState.putString("url",mStepVideoUri.toString());
+        }
         outState.putInt(STATE_RESUME_WINDOW, mResumeWindow);
         outState.putLong(STATE_RESUME_POSITION, mResumePosition);
         outState.putBoolean(STATE_PLAYER_FULLSCREEN, mExoPlayerFullscreen);
@@ -338,10 +357,11 @@ public class StepDetailFragment extends Fragment implements Player.EventListener
     @Override
     public void onResume() {
         super.onResume();
+        Log.i(TAG,"resume");
         boolean haveResumePosition = mResumeWindow != C.INDEX_UNSET;
-
-        if (haveResumePosition&&mStepVideoUri!=null) {
-            mExoPlayer.seekTo(mResumeWindow, mResumePosition);
+        
+        if (haveResumePosition&&mStepVideoUri!=null){
+            initializePlayer(mStepVideoUri);
         }
 
 
@@ -350,12 +370,13 @@ public class StepDetailFragment extends Fragment implements Player.EventListener
     @Override
     public void onPause() {
         super.onPause();
+        Log.i(TAG,"pause");
 
         if (mStepPlayerView != null && mStepPlayerView.getPlayer() != null) {
             mResumeWindow = mStepPlayerView.getPlayer().getCurrentWindowIndex();
             mResumePosition = Math.max(0, mStepPlayerView.getPlayer().getContentPosition());
 
-            mStepPlayerView.getPlayer().release();
+            releasePlayer();
         }
 
         if (mFullScreenDialog != null)
@@ -367,13 +388,19 @@ public class StepDetailFragment extends Fragment implements Player.EventListener
         if (mStepEntries==null){
             mStepEntries = JsonTools.getStepById(getContext(),id);
         }
-        String urlStr = mStepEntries[step].getSetp_video();
-        if (urlStr==""||urlStr.length()==0){
-            return null;
-        }else {
-            return Uri.parse(urlStr).buildUpon().build();
+
+        Uri uri = null;
+
+        if (mStepEntries!=null){
+            String urlStr = mStepEntries[step].getSetp_video();
+            if (urlStr.equals("")||urlStr.length()==0){
+                uri =  null;
+            }else {
+                uri =  Uri.parse(urlStr).buildUpon().build();
+            }
         }
 
+        return uri;
     }
     /**
      * Initializes the Media Session to be enabled with media buttons, transport controls, callbacks
@@ -432,6 +459,8 @@ public class StepDetailFragment extends Fragment implements Player.EventListener
             factory.setExtractorsFactory(extractorsFactory);
             MediaSource mediaSource = factory.createMediaSource(mediaUri);
 
+            if (mResumePosition!=C.TIME_UNSET)
+                mExoPlayer.seekTo(mResumeWindow,mResumePosition);
             mExoPlayer.prepare(mediaSource);
             mExoPlayer.setPlayWhenReady(true);
 
