@@ -27,7 +27,7 @@
         <provider
             android:name=".data.RecipeProvider"
             android:authorities="com.moming.jml.bakingtime"
-            android:exported="false" />
+            android:exported="true" />
 
         <activity
             android:name=".RecipeStepActivity"
@@ -51,7 +51,7 @@
             android:permission="android.permission.BIND_REMOTEVIEWS" />
         <service
             android:name=".RecipeWidgetIntentService"
-            android:exported="false"></service>
+            android:exported="false"/>
     </application>
 
 </manifest>

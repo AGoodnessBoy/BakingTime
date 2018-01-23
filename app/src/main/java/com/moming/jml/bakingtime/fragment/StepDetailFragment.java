@@ -359,7 +359,7 @@ public class StepDetailFragment extends Fragment implements Player.EventListener
         super.onResume();
         Log.i(TAG,"resume");
         boolean haveResumePosition = mResumeWindow != C.INDEX_UNSET;
-        
+
         if (haveResumePosition&&mStepVideoUri!=null){
             initializePlayer(mStepVideoUri);
         }

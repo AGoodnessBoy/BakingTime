@@ -14,8 +14,10 @@ public class StepDetailActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_step_detail);
         Intent intent = getIntent();
+
         int postion = intent.getIntExtra("step_postion",0);
         String id  = intent.getStringExtra("recipe_id");
+        Log.i("widget_bundle-2",id+"  " +Integer.toString(postion));
         StepDetailFragment fragment = (StepDetailFragment) getSupportFragmentManager().findFragmentById(
                 R.id.step_detail_fragment);
         Log.i("tag",id);

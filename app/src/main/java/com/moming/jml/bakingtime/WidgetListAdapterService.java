@@ -3,6 +3,7 @@ package com.moming.jml.bakingtime;
 import android.appwidget.AppWidgetManager;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Bundle;
 import android.util.Log;
 import android.widget.RemoteViews;
 import android.widget.RemoteViewsService;
@@ -32,13 +33,6 @@ class WidgetListRemoteViewsFactory implements RemoteViewsService.RemoteViewsFact
         mContext = applicationContext;
         mAppWidgetId = intent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID,AppWidgetManager.INVALID_APPWIDGET_ID);
 
-        String id = intent.getStringExtra("recipe_id");
-        Log.d("widget",id);
-        try {
-            mStepEntries = JsonTools.getStepById(applicationContext,id);
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
     }
 
     @Override
@@ -49,10 +43,18 @@ class WidgetListRemoteViewsFactory implements RemoteViewsService.RemoteViewsFact
     @Override
     public void onDataSetChanged() {
 
+        mStepEntries = null;
+        try {
+            mStepEntries = JsonTools.getStepById(mContext,RecipeWidget.mRecipeId);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
     }
 
     @Override
     public void onDestroy() {
+        mStepEntries = null;
 
     }
 
@@ -71,8 +73,18 @@ class WidgetListRemoteViewsFactory implements RemoteViewsService.RemoteViewsFact
                 mContext.getPackageName(),R.layout.widget_list_item);
 
         remoteViews.setTextViewText(R.id.widget_tv_step_name,
-                mStepEntries[position].getSetp_id()+mStepEntries[position].getSetp_shortDesc()
+                mStepEntries[position].getSetp_id()+" . "+mStepEntries[position].getSetp_shortDesc()
                 );
+
+        Bundle bundle = new Bundle();
+        bundle.putInt("step_postion",position);
+        bundle.putString("recipe_id",RecipeWidget.mRecipeId);
+        Log.i("widget_bundle",RecipeWidget.mRecipeId+"  " +Integer.toString(position));
+        Intent fillInIntent = new Intent();
+        fillInIntent.putExtras(bundle);
+        remoteViews.setOnClickFillInIntent(R.id.widget_tv_recipe_name,fillInIntent);
+
+
         return remoteViews;
     }
 
