@@ -14,7 +14,8 @@
     <string name="pause">pause</string>
     <string name="play">play</string>
     <string name="restart">restart</string>
-
+    <string name="empty_view_text">Recipe is null</string>
+    <string name="add_widget">Add widget</string>
 
 
 </resources>
