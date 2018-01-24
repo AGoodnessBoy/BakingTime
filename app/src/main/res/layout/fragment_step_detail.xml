@@ -6,7 +6,7 @@
     android:orientation="vertical"
     tools:context="com.moming.jml.bakingtime.fragment.StepDetailFragment">
 
-    <!-- TODO: Update blank fragment layout -->
+
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="220dp"

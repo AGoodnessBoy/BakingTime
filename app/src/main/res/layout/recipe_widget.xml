@@ -21,7 +21,10 @@
                 android:text="@string/brownies"
                 android:textColor="#ffffff"
                 android:textSize="24sp"
-                android:textStyle="bold|italic" />
+                android:textStyle="bold|italic"
+                android:clickable="true"
+
+                />
 
             <ImageView
                 android:layout_width="30dp"

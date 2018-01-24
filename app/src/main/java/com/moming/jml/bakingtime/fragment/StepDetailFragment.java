@@ -250,6 +250,7 @@ public class StepDetailFragment extends Fragment implements Player.EventListener
         if (id!=null&&postion>=0){
             mRecipeId = id;
             mStepNow = postion;
+            Log.i(TAG,Integer.toString(mStepNow));
         }
         try {
             mStepVideoUri= getStepVideoUrl(mRecipeId,mStepNow);

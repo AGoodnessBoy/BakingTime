@@ -42,6 +42,7 @@ public class RecipeStepFragment extends Fragment implements RecipeStepAdapter.Re
     private String mRecipeId;
 
     private String mRecipeName;
+    public int mStepPostion = 0;
 
 
 
@@ -107,7 +108,7 @@ public class RecipeStepFragment extends Fragment implements RecipeStepAdapter.Re
             StepDetailFragment fragment = (StepDetailFragment)getActivity(). getSupportFragmentManager().findFragmentById(
                     R.id.step_detail_fragment);
             Log.i("tag",mRecipeId);
-            fragment.inputData(mRecipeId,0);
+            fragment.inputData(mRecipeId,mStepPostion);
         }
 
 

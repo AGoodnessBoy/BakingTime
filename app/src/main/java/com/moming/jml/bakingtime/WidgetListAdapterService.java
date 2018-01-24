@@ -82,7 +82,7 @@ class WidgetListRemoteViewsFactory implements RemoteViewsService.RemoteViewsFact
         Log.i("widget_bundle",RecipeWidget.mRecipeId+"  " +Integer.toString(position));
         Intent fillInIntent = new Intent();
         fillInIntent.putExtras(bundle);
-        remoteViews.setOnClickFillInIntent(R.id.widget_tv_recipe_name,fillInIntent);
+        remoteViews.setOnClickFillInIntent(R.id.widget_tv_step_name,fillInIntent);
 
 
         return remoteViews;

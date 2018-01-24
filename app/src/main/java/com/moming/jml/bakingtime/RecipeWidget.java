@@ -43,14 +43,19 @@ public class RecipeWidget extends AppWidgetProvider {
         GotoRecipeintent.putExtra("recpice_name",name);
         PendingIntent goToRecipeIntent = PendingIntent.getActivity(context,0,GotoRecipeintent,PendingIntent.FLAG_UPDATE_CURRENT);
         views.setOnClickPendingIntent(R.id.widget_tv_recipe_name,goToRecipeIntent);
-
+        Intent GoToDetailintent;
 
         if (context.getResources().getBoolean(R.bool.isPad)){
             Log.i("widget","pad");
-
+            GoToDetailintent= new Intent(context,RecipeStepActivity.class);
+            GoToDetailintent.putExtra("recpice_name",name);
+            GoToDetailintent.putExtra("recpice_id",id);
+            PendingIntent goToDetailIntent = PendingIntent.getActivity(context,0,
+                    GoToDetailintent,PendingIntent.FLAG_UPDATE_CURRENT);
+            views.setPendingIntentTemplate(R.id.widget_lv_recipe_list,goToDetailIntent);
         }else {
             Log.i("widget","not pad");
-            Intent GoToDetailintent = new Intent(context,StepDetailActivity.class);
+            GoToDetailintent = new Intent(context,StepDetailActivity.class);
             PendingIntent goToDetailIntent = PendingIntent.getActivity(context,0,
                     GoToDetailintent,PendingIntent.FLAG_UPDATE_CURRENT);
             Log.i("widget","1");
